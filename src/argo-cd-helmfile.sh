@@ -214,7 +214,12 @@ case $phase in
     fi
 
     if [[ ${helm_major_version} -eq 3 && "${KUBE_API_VERSIONS}" ]]; then
-      INTERNAL_HELM_TEMPLATE_OPTIONS="${INTERNAL_HELM_TEMPLATE_OPTIONS} --api-versions=${KUBE_API_VERSIONS}"
+      INTERNAL_HELM_API_VERSIONS=""
+      for v in ${KUBE_API_VERSIONS//,/ }
+      do
+        INTERNAL_HELM_API_VERSIONS="${INTERNAL_HELM_API_VERSIONS} --api-versions=$v"
+      done
+      INTERNAL_HELM_TEMPLATE_OPTIONS="${INTERNAL_HELM_TEMPLATE_OPTIONS} ${INTERNAL_HELM_API_VERSIONS}"
     fi
 
     ${helmfile} \
