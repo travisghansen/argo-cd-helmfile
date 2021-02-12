@@ -17,7 +17,7 @@ helm_major_version=$(echo "${helm_full_version}" | cut -d "." -f1 | sed 's/[^0-9
 
 # replace init behavior
 if [[ ${helm_major_version} -eq 3 && "${1}" == "init" ]]; then
-  HOME=${HELM_HOME} ${helm} repo add stable https://kubernetes-charts.storage.googleapis.com
+  HOME=${HELM_HOME} ${helm} repo add stable https://charts.helm.sh/stable
   exit 0
 fi
 
