@@ -66,6 +66,10 @@ optional):
 - `HELM_BINARY` - custom path to `helm` binary
 - `HELM_TEMPLATE_OPTIONS` - pass-through options for the templating operation
   `helm template --help`
+- `HELM_PLUGIN_URLS` - A list of plugin URLs to use with helm. ex:
+  ```
+   HELM_PLUGIN_URLS="https://github.com/jkroepke/helm-secrets https://github.com/databus23/helm-diff"
+  ```
 - `HELMFILE_BINARY` - custom path to `helmfile` binary
 - `HELMFILE_GLOBAL_OPTIONS` - pass-through options for all `helmfile`
   operations `helmfile --help`

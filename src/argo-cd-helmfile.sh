@@ -8,6 +8,7 @@
 # HELMFILE_TEMPLATE_OPTIONS - helmfile template --help
 # HELMFILE_HELMFILE - a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)
 # HELMFILE_HELMFILE_STRATEGY - REPLACE or INCLUDE
+# HELM_PLUGIN_URLS - list of URLs to attempt to install as plugins
 
 # NOTE: only 1 -f value/file/dir is used by helmfile, while you can specific -f multiple times
 # only the last one matters and all previous -f arguments are irrelevant
@@ -84,6 +85,21 @@ if [[ "${HELM_BINARY}" ]]; then
 else
   helm="$(which helm)"
 fi
+
+for HELM_PLUGIN_URL in "${HELM_PLUGIN_URLS[@]}"; do
+  output="$(helm plugin install "$HELM_PLUGIN_URL" || true)"
+  if [ $? -ne 0 ]; then
+      echo ":x: Failed installing plugin"
+      echo "$output"
+      exit 1;
+  fi
+  output1="$(helm2 init --client-only || true ; helm plugin install "$HELM_PLUGIN_URL" || true)"
+  if [ $? -ne 0 ]; then
+      echo ":x: Failed installing helm2 plugin"
+      echo "$output1"
+      exit 1;
+  fi
+done
 
 if [[ "${HELMFILE_BINARY}" ]]; then
   helmfile="${HELMFILE_BINARY}"
