@@ -86,21 +86,6 @@ else
   helm="$(which helm)"
 fi
 
-for HELM_PLUGIN_URL in ${HELM_PLUGIN_URLS[@]}; do
-  output="$(helm plugin add "$HELM_PLUGIN_URL" || true)"
-  if [ $? -ne 0 ]; then
-      echo ":x: Failed installing plugin"
-      echo "$output"
-      exit 1;
-  fi
-  output1="$(helm2 init --client-only || true ; helm plugin add "$HELM_PLUGIN_URL" || true)"
-  if [ $? -ne 0 ]; then
-      echo ":x: Failed installing helm2 plugin"
-      echo "$output1"
-      exit 1;
-  fi
-done
-
 if [[ "${HELMFILE_BINARY}" ]]; then
   helmfile="${HELMFILE_BINARY}"
 else
@@ -137,6 +122,21 @@ helm_major_version=$(echo "${helm_full_version}" | cut -d "." -f1 | sed 's/[^0-9
 
 # set home variable to ensure apps do NOT overlap settings/repos/etc
 export HOME="${HELM_HOME}"
+
+for HELM_PLUGIN_URL in ${HELM_PLUGIN_URLS[@]}; do
+  output="$(helm plugin add "$HELM_PLUGIN_URL" || true)"
+  if [ $? -ne 0 ]; then
+      echo ":x: Failed installing plugin"
+      echo "$output"
+      exit 1;
+  fi
+  output1="$(helm2 init --client-only || true ; helm2 plugin install "$HELM_PLUGIN_URL" || true)"
+  if [ $? -ne 0 ]; then
+      echo ":x: Failed installing helm2 plugin"
+      echo "$output1"
+      exit 1;
+  fi
+done
 
 echoerr "$(${helm} version --short --client)"
 echoerr "$(${helmfile} --version)"
