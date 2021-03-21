@@ -8,6 +8,8 @@
 # HELMFILE_TEMPLATE_OPTIONS - helmfile template --help
 # HELMFILE_HELMFILE - a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)
 # HELMFILE_HELMFILE_STRATEGY - REPLACE or INCLUDE
+# HELMFILE_INIT_SCRIPT_FILE - path to script to execute during the init phase
+# HELM_PLUGINS - perform variable expansion
 
 # NOTE: only 1 -f value/file/dir is used by helmfile, while you can specific -f multiple times
 # only the last one matters and all previous -f arguments are irrelevant
@@ -67,6 +69,14 @@ if [[ "${HELM_TEMPLATE_OPTIONS}" ]]; then
   HELM_TEMPLATE_OPTIONS=$(variable_expansion "${HELM_TEMPLATE_OPTIONS}")
 fi
 
+if [[ "${HELMFILE_INIT_SCRIPT_FILE}" ]]; then
+  HELMFILE_INIT_SCRIPT_FILE=$(variable_expansion "${HELMFILE_INIT_SCRIPT_FILE}")
+fi
+
+if [[ "${HELM_PLUGINS}" ]]; then
+  export HELM_PLUGINS=$(variable_expansion "${HELM_PLUGINS}")
+fi
+
 phase=$1
 
 # setup the env
@@ -93,7 +103,7 @@ else
   else
     LOCAL_HELMFILE_BINARY="/tmp/__${SCRIPT_NAME}__/bin/helmfile"
     if [[ ! -x "${LOCAL_HELMFILE_BINARY}" ]]; then
-      wget -O "${LOCAL_HELMFILE_BINARY}" "https://github.com/roboll/helmfile/releases/download/v0.98.2/helmfile_linux_amd64"
+      wget -O "${LOCAL_HELMFILE_BINARY}" "https://github.com/roboll/helmfile/releases/download/v0.138.7/helmfile_linux_amd64"
       chmod +x "${LOCAL_HELMFILE_BINARY}"
     fi
     helmfile="${LOCAL_HELMFILE_BINARY}"
@@ -176,6 +186,11 @@ case $phase in
     if [[ ${helm_major_version} -eq 3 ]]; then
       # https://github.com/roboll/helmfile/issues/1015#issuecomment-563488649
       export HELMFILE_HELM3="1"
+    fi
+
+    if [ ! -z "${HELMFILE_INIT_SCRIPT_FILE}" ]; then
+      HELMFILE_INIT_SCRIPT_FILE=$(realpath "${HELMFILE_INIT_SCRIPT_FILE}")
+      bash "${HELMFILE_INIT_SCRIPT_FILE}"
     fi
 
     # https://github.com/roboll/helmfile/issues/1064
