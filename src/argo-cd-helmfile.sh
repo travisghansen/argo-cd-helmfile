@@ -9,7 +9,7 @@
 # HELMFILE_HELMFILE - a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)
 # HELMFILE_HELMFILE_STRATEGY - REPLACE or INCLUDE
 # HELMFILE_INIT_SCRIPT_FILE - path to script to execute during the init phase
-# HELM_PLUGINS - perform variable expansion
+# HELM_DATA_HOME - perform variable expansion
 
 # NOTE: only 1 -f value/file/dir is used by helmfile, while you can specific -f multiple times
 # only the last one matters and all previous -f arguments are irrelevant
@@ -73,8 +73,8 @@ if [[ "${HELMFILE_INIT_SCRIPT_FILE}" ]]; then
   HELMFILE_INIT_SCRIPT_FILE=$(variable_expansion "${HELMFILE_INIT_SCRIPT_FILE}")
 fi
 
-if [[ "${HELM_PLUGINS}" ]]; then
-  export HELM_PLUGINS=$(variable_expansion "${HELM_PLUGINS}")
+if [[ "${HELM_DATA_HOME}" ]]; then
+  export HELM_DATA_HOME=$(variable_expansion "${HELM_DATA_HOME}")
 fi
 
 phase=$1

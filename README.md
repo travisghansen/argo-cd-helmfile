@@ -98,7 +98,7 @@ Of the above `ENV` variables, the following do variable expansion on the value:
 - `HELMFILE_TEMPLATE_OPTIONS`
 - `HELM_TEMPLATE_OPTIONS`
 - `HELMFILE_INIT_SCRIPT_FILE`
-- `HELM_PLUGINS`
+- `HELM_DATA_HOME`
 
 Meaning, you can do things like:
 
@@ -113,10 +113,40 @@ variables declared in the application spec.
 ## Helm Plugins
 
 To use the various helm plugins the recommended approach is the install the
-plugins using the/an `initContainers` (explicity set the `HELM_PLUGINS` env
-var during the `helm plugin add` command) and simply set the `HELM_PLUGINS`
+plugins using the/an `initContainers` (explicity set the `HELM_DATA_HOME` env
+var during the `helm plugin add` command) and simply set the `HELM_DATA_HOME`
 environment variable in your application spec (or globally in the pod). This
 prevents the plugin(s) from being downloaded over and over each run.
+
+```
+# repo server deployment
+  volumes:
+  ...
+  - name: helm-data-home
+    emptyDir: {}
+
+# repo-server container
+  volumeMounts:
+  ...
+  - mountPath: /home/argocd/.local/share/helm
+    name: helm-data-home
+
+# init container
+  volumeMounts:
+  ...
+  - mountPath: /helm/data
+    name: helm-data-home
+
+    [[ ! -d "${HELM_DATA_HOME}/plugins/helm-secrets" ]] && /custom-tools/helm-v3 plugin install https://github.com/jkroepke/helm-secrets --version ${HELM_SECRETS_VERSION}
+    chown -R 999:999 "${HELM_DATA_HOME}"
+
+# lastly, in your app definition
+...
+plugin:
+  env:
+  - name: HELM_DATA_HOME
+    value: /home/argocd/.local/share/helm
+```
 
 If the above is not possible/desired, the recommended approach would be to use
 `HELMFILE_INIT_SCRIPT_FILE` to execute an arbitrary script during the `init`
