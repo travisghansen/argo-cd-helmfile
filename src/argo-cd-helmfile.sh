@@ -127,7 +127,9 @@ fi
 
 # these should work for both v2 and v3
 helm_full_version=$(${helm} version --short --client | cut -d " " -f2)
-helm_major_version=$(echo "${helm_full_version}" | cut -d "." -f1 | sed 's/[^0-9]//g')
+helm_major_version=$(echo "${helm_full_version%+*}}" | cut -d "." -f1 | sed 's/[^0-9]//g')
+helm_minor_version=$(echo "${helm_full_version%+*}" | cut -d "." -f2 | sed 's/[^0-9]//g')
+helm_patch_version=$(echo "${helm_full_version%+*}" | cut -d "." -f3 | sed 's/[^0-9]//g')
 
 # set home variable to ensure apps do NOT overlap settings/repos/etc
 export HOME="${HELM_HOME}"
@@ -225,6 +227,12 @@ case $phase in
     # --skip-crds                  if set, no CRDs will be installed. By default, CRDs are installed if not already present
 
     if [[ ${helm_major_version} -eq 2 && "${KUBE_VERSION}" ]]; then
+      INTERNAL_HELM_TEMPLATE_OPTIONS="${INTERNAL_HELM_TEMPLATE_OPTIONS} --kube-version=${KUBE_VERSION}"
+    fi
+
+    # support added for --kube-version in 3.6
+    # https://github.com/helm/helm/pull/9040
+    if [[ ${helm_major_version} -eq 3 && ${helm_minor_version} -ge 6 && "${KUBE_VERSION}" ]]; then
       INTERNAL_HELM_TEMPLATE_OPTIONS="${INTERNAL_HELM_TEMPLATE_OPTIONS} --kube-version=${KUBE_VERSION}"
     fi
 
