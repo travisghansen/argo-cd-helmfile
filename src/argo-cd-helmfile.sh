@@ -131,6 +131,10 @@ helm_major_version=$(echo "${helm_full_version%+*}" | cut -d "." -f1 | sed 's/[^
 helm_minor_version=$(echo "${helm_full_version%+*}" | cut -d "." -f2 | sed 's/[^0-9]//g')
 helm_patch_version=$(echo "${helm_full_version%+*}" | cut -d "." -f3 | sed 's/[^0-9]//g')
 
+# fix scenarios where KUBE_VERSION is improperly set with trailing +
+# https://github.com/argoproj/argo-cd/issues/8249
+KUBE_VERSION=$(echo "${KUBE_VERSION}" | sed 's/[^0-9\.]*//g')
+
 # set home variable to ensure apps do NOT overlap settings/repos/etc
 export HOME="${HELM_HOME}"
 
