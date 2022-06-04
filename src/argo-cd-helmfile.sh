@@ -103,7 +103,7 @@ else
   else
     LOCAL_HELMFILE_BINARY="/tmp/__${SCRIPT_NAME}__/bin/helmfile"
     if [[ ! -x "${LOCAL_HELMFILE_BINARY}" ]]; then
-      wget -O "${LOCAL_HELMFILE_BINARY}" "https://github.com/roboll/helmfile/releases/download/v0.138.7/helmfile_linux_amd64"
+      wget -O "${LOCAL_HELMFILE_BINARY}" "https://github.com/roboll/helmfile/releases/download/v0.144.0/helmfile_linux_amd64"
       chmod +x "${LOCAL_HELMFILE_BINARY}"
     fi
     helmfile="${LOCAL_HELMFILE_BINARY}"
