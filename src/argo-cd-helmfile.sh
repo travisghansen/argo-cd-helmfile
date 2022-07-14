@@ -54,7 +54,7 @@ variable_expansion() {
 
 print_env_vars() {
   while IFS='=' read -r -d '' n v; do
-      printf "'%s'='%s'\n" "$n" "$v"
+    printf "'%s'='%s'\n" "$n" "$v"
   done < <(env -0)
 }
 
@@ -72,9 +72,9 @@ SCRIPT_NAME=$(basename "${0}")
 #if [[ "${HELMFILE_UNPREFIX_ENV}" == "1" || "${ARGOCD_ENV_HELMFILE_UNPREFIX_ENV}" == "1" || true ]]; then
 if [[ true ]]; then
   while IFS='=' read -r -d '' n v; do
-      if [[ "${n}" = ARGOCD_ENV_* ]];then
-        export ${n##ARGOCD_ENV_}="${v}"
-      fi
+    if [[ "${n}" = ARGOCD_ENV_* ]]; then
+      export ${n##ARGOCD_ENV_}="${v}"
+    fi
   done < <(env -0)
 fi
 
