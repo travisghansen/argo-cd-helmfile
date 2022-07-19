@@ -10,6 +10,7 @@
 # HELMFILE_HELMFILE_STRATEGY - REPLACE or INCLUDE
 # HELMFILE_INIT_SCRIPT_FILE - path to script to execute during the init phase
 # HELMFILE_CACHE_CLEANUP - run helmfile cache cleanup on init
+# HELMFILE_USE_CONTEXT_NAMESPACE - do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)
 # HELM_DATA_HOME - perform variable expansion
 
 # NOTE: only 1 -f value/file/dir is used by helmfile, while you can specific -f multiple times
@@ -34,7 +35,10 @@
 # KUBE_VERSION="<major>.<minor>"
 # KUBE_API_VERSIONS="v1,apps/v1,..."
 
+# error/exit on any failure
 set -e
+
+# debugging execution
 set -x
 
 echoerr() { printf "%s\n" "$*" >&2; }
@@ -49,6 +53,12 @@ variable_expansion() {
   fi
 }
 
+print_env_vars() {
+  while IFS='=' read -r -d '' n v; do
+    printf "'%s'='%s'\n" "$n" "$v"
+  done < <(env -0)
+}
+
 # exit immediately if no phase is passed in
 if [[ -z "${1}" ]]; then
   echoerr "invalid invocation"
@@ -56,6 +66,18 @@ if [[ -z "${1}" ]]; then
 fi
 
 SCRIPT_NAME=$(basename "${0}")
+
+# export vars unprefixed
+# ARGOCD_ENV_
+# https://argo-cd.readthedocs.io/en/latest/operator-manual/upgrading/2.3-2.4/
+#if [[ "${HELMFILE_UNPREFIX_ENV}" == "1" || "${ARGOCD_ENV_HELMFILE_UNPREFIX_ENV}" == "1" || true ]]; then
+if [[ true ]]; then
+  while IFS='=' read -r -d '' n v; do
+    if [[ "${n}" = ARGOCD_ENV_* ]]; then
+      export ${n##ARGOCD_ENV_}="${v}"
+    fi
+  done < <(env -0)
+fi
 
 # expand nested variables
 if [[ "${HELMFILE_GLOBAL_OPTIONS}" ]]; then
@@ -104,7 +126,7 @@ else
   else
     LOCAL_HELMFILE_BINARY="/tmp/__${SCRIPT_NAME}__/bin/helmfile"
     if [[ ! -x "${LOCAL_HELMFILE_BINARY}" ]]; then
-      wget -O "${LOCAL_HELMFILE_BINARY}" "https://github.com/roboll/helmfile/releases/download/v0.138.7/helmfile_linux_amd64"
+      wget -O "${LOCAL_HELMFILE_BINARY}" "https://github.com/roboll/helmfile/releases/download/${HELMFILE_VERSION:-v0.144.0}/helmfile_linux_amd64"
       chmod +x "${LOCAL_HELMFILE_BINARY}"
     fi
     helmfile="${LOCAL_HELMFILE_BINARY}"
@@ -113,7 +135,7 @@ fi
 
 helmfile="${helmfile} --helm-binary ${helm} --no-color --allow-no-matching-release"
 
-if [[ "${ARGOCD_APP_NAMESPACE}" ]]; then
+if [[ "${ARGOCD_APP_NAMESPACE}" && ! "${HELMFILE_USE_CONTEXT_NAMESPACE}" ]]; then
   helmfile="${helmfile} --namespace ${ARGOCD_APP_NAMESPACE}"
 fi
 
@@ -145,6 +167,10 @@ echoerr "$(${helmfile} --version)"
 case $phase in
   "init")
     echoerr "starting init"
+
+    if [[ "${HELMFILE_CACHE_CLEANUP}" ]]; then
+      ${helmfile} cache cleanup
+    fi
 
     # ensure dir(s)
     # rm -rf "${HELM_HOME}"
@@ -198,10 +224,6 @@ case $phase in
     if [ ! -z "${HELMFILE_INIT_SCRIPT_FILE}" ]; then
       HELMFILE_INIT_SCRIPT_FILE=$(realpath "${HELMFILE_INIT_SCRIPT_FILE}")
       bash "${HELMFILE_INIT_SCRIPT_FILE}"
-    fi
-
-    if [[ "${HELMFILE_CACHE_CLEANUP}" ]]; then
-      ${helmfile} cache cleanup
     fi
 
     # https://github.com/roboll/helmfile/issues/1064

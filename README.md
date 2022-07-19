@@ -78,6 +78,8 @@ optional):
 - `HELM_TEMPLATE_OPTIONS` - pass-through options for the templating operation
   `helm template --help`
 - `HELMFILE_BINARY` - custom path to `helmfile` binary
+- `HELMFILE_USE_CONTEXT_NAMESPACE` - do not set helmfile namespace to `ARGOCD_APP_NAMESPACE`,
+  for use with multi-namespace apps
 - `HELMFILE_GLOBAL_OPTIONS` - pass-through options for all `helmfile`
   operations `helmfile --help`
 - `HELMFILE_TEMPLATE_OPTIONS` - pass-through options for the templating
