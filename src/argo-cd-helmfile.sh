@@ -9,6 +9,7 @@
 # HELMFILE_HELMFILE - a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)
 # HELMFILE_HELMFILE_STRATEGY - REPLACE or INCLUDE
 # HELMFILE_INIT_SCRIPT_FILE - path to script to execute during the init phase
+# HELMFILE_CACHE_CLEANUP - run helmfile cache cleanup on init
 # HELMFILE_USE_CONTEXT_NAMESPACE - do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)
 # HELM_DATA_HOME - perform variable expansion
 
@@ -166,6 +167,10 @@ echoerr "$(${helmfile} --version)"
 case $phase in
   "init")
     echoerr "starting init"
+
+    if [[ "${HELMFILE_CACHE_CLEANUP}" ]]; then
+      ${helmfile} cache cleanup
+    fi
 
     # ensure dir(s)
     # rm -rf "${HELM_HOME}"

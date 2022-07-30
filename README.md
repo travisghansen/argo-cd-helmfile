@@ -93,6 +93,7 @@ optional):
     `HELMFILE_HELMFILE` are rendered, precedence is given to
     `HELMFILE_HELMFILE` should the same release name be declared in multiple
     files
+- `HELMFILE_CACHE_CLEANUP` - run helmfile cache cleanup on init
 
 Of the above `ENV` variables, the following do variable expansion on the value:
 
