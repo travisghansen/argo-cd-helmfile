@@ -102,6 +102,8 @@ Of the above `ENV` variables, the following do variable expansion on the value:
 - `HELM_TEMPLATE_OPTIONS`
 - `HELMFILE_INIT_SCRIPT_FILE`
 - `HELM_DATA_HOME`
+- `HELM_CACHE_HOME`
+- `XDG_CACHE_HOME`
 
 Meaning, you can do things like:
 

@@ -107,6 +107,20 @@ phase=$1
 export HELM_HOME="/tmp/__${SCRIPT_NAME}__/apps/${ARGOCD_APP_NAME}"
 export HELMFILE_HELMFILE_HELMFILED="${PWD}/.__${SCRIPT_NAME}__helmfile.d"
 
+# set helm cache dir explicitly so it does not use XDG_CACHE_HOME
+if [[ "${HELM_CACHE_HOME}" ]]; then
+  export HELM_CACHE_HOME=$(variable_expansion "${HELM_CACHE_HOME}")
+fi
+export HELM_CACHE_HOME="${HELM_CACHE_HOME:-/tmp/helm_cache}"
+
+# set up separate helmfile cache dir for each app (helmfile uses XDG_CACHE_HOME)
+# so helmfile cache cleanup on one app doesn't wipe out other apps while they are generating
+if [[ "${XDG_CACHE_HOME}" ]]; then
+  export XDG_CACHE_HOME=$(variable_expansion "${XDG_CACHE_HOME}")
+else
+  export XDG_CACHE_HOME="/tmp/helmfile_cache/${ARGOCD_APP_NAME}"
+fi
+
 if [[ ! -d "/tmp/__${SCRIPT_NAME}__/bin" ]]; then
   mkdir -p "/tmp/__${SCRIPT_NAME}__/bin"
 fi
