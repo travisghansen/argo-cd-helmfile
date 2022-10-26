@@ -39,7 +39,13 @@
 set -e
 
 # debugging execution
-set -x
+#
+# Enable this only if you are debugging an issue.
+# Leaving this on causes excessive space consumption on etcd database.
+# See https://github.com/travisghansen/argo-cd-helmfile/issues/28
+if [[ "${DEBUG}" == "1" ]]; then
+  set -x
+fi
 
 echoerr() { printf "%s\n" "$*" >&2; }
 
