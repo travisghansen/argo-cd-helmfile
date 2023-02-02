@@ -1,0 +1,46 @@
+# https://docs.github.com/en/free-pro-team@latest/actions/reference/context-and-expression-syntax-for-github-actions#github-context
+# https://docs.github.com/en/free-pro-team@latest/actions/reference/workflow-syntax-for-github-actions#jobsjob_idif
+# https://github.community/t/how-to-get-just-the-tag-name/16241/10
+
+name: CI
+
+on:
+  push:
+    tags:
+      - "v*"
+    branches:
+      - master
+      - next
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: cancel previous runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ github.token }}
+
+      - uses: actions/checkout@v2
+
+      - name: docker build
+        run: |
+          export ARCH=$([ $(uname -m) = "x86_64" ] && echo "amd64" || echo "arm64")
+          mkdir -p ~/.docker/cli-plugins/
+          wget -qO ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.8.1/buildx-v0.8.1.linux-${ARCH}
+          chmod a+x ~/.docker/cli-plugins/docker-buildx
+          docker info
+          docker buildx version
+          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          docker buildx create --name xbuilder --use
+          docker buildx inspect --bootstrap
+          .github/bin/docker-release.sh
+
+        env:
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_PASSWORD: ${{ secrets.GHCR_PASSWORD }}
+          DOCKER_CLI_EXPERIMENTAL: enabled
+          DOCKER_BUILD_PLATFORM: linux/amd64,linux/arm64/v8

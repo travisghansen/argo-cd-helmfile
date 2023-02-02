@@ -1,3 +1,6 @@
+![Image](https://img.shields.io/docker/pulls/travisghansen/argo-cd-helmfile.svg)
+![Image](https://img.shields.io/github/actions/workflow/status/travisghansen/argo-cd-helmfile/main.yml?branch=master&style=flat-square)
+
 # Intro
 
 Support for `helmfile` with `argo-cd`.

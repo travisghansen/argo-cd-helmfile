@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ConfigManagementPlugin
+metadata:
+  name: helmfile
+spec:
+  version: v1.0
+  init:
+    command: ["argo-cd-helmfile.sh"]
+    args: ["init"]
+  generate:
+    command: ["argo-cd-helmfile.sh"]
+    args: ["generate"]
+
+  # discover is implied with sidecar-style plugins
+  # executed in the sidecar and with standard env vars like init and generate
+  discover:
+    find:
+      command: [argo-cd-helmfile.sh, discover]
