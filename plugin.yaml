@@ -16,3 +16,10 @@ spec:
   discover:
     find:
       command: [argo-cd-helmfile.sh, discover]
+  parameters:
+    #static:
+    #- name: values-files
+    #  title: Values Files
+    #  collectionType: array
+    dynamic:
+      command: [argo-cd-helmfile.sh, parameters]

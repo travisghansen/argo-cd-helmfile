@@ -27,6 +27,14 @@
 # ARGOCD_APP_SOURCE_REPO_URL the repo's URL
 # ARGOCD_APP_SOURCE_TARGET_REVISION - the target revision from the spec, e.g. master.
 
+## cmp
+# - https://argo-cd.readthedocs.io/en/stable/operator-manual/config-management-plugins/
+# - https://github.com/argoproj/argo-cd/blob/master/docs/proposals/parameterized-config-management-plugins.md
+# - https://github.com/argoproj/argo-cd/blob/master/docs/proposals/parameterized-config-management-plugins.md#how-will-the-cmp-know-what-parameter-values-are-set
+#
+# if parameter is absent in the application spec (not present), ENV var is not set at all
+# boolean params are currently (2.6) still free-form strings to the user
+
 # each manifest generation cycle calls git reset/clean before (between init and generate it is NOT ran)
 # init is called before every manifest generation
 # it can be used to download dependencies, etc, etc
@@ -65,6 +73,32 @@ print_env_vars() {
   done < <(env -0)
 }
 
+#truthy_test ${FOO:-false} && echo "yes \$FOO"
+truthy_test() {
+  val="${1}"
+  if [[ $val == true ]]; then
+    return 0
+  fi
+
+  if [[ ${val} -eq 1 ]]; then
+    return 0
+  fi
+
+  if [[ ${val,,} == "1" ]]; then
+    return 0
+  fi
+
+  if [[ ${val,,} == "true" ]]; then
+    return 0
+  fi
+
+  if [[ ${val,,} == "yes" ]]; then
+    return 0
+  fi
+
+  return 1
+}
+
 # exit immediately if no phase is passed in
 if [[ -z "${1}" ]]; then
   echoerr "invalid invocation"
@@ -73,12 +107,9 @@ fi
 
 SCRIPT_NAME=$(basename "${0}")
 
-# TODO: export PATH with custom-tools dir
-
 # export vars unprefixed
 # ARGOCD_ENV_
 # https://argo-cd.readthedocs.io/en/latest/operator-manual/upgrading/2.3-2.4/
-#if [[ "${HELMFILE_UNPREFIX_ENV}" == "1" || "${ARGOCD_ENV_HELMFILE_UNPREFIX_ENV}" == "1" || true ]]; then
 if [[ true ]]; then
   while IFS='=' read -r -d '' n v; do
     if [[ "${n}" = ARGOCD_ENV_* ]]; then
@@ -86,6 +117,23 @@ if [[ true ]]; then
     fi
   done < <(env -0)
 fi
+
+# immediately correct PATH if necessary
+export PATH=$(variable_expansion "${PATH}")
+
+# export params unprefixed (prefer these over ENV vars above)
+# PARAM_
+# https://github.com/argoproj/argo-cd/blob/master/docs/proposals/parameterized-config-management-plugins.md#how-will-the-cmp-know-what-parameter-values-are-set
+if [[ true ]]; then
+  while IFS='=' read -r -d '' n v; do
+    if [[ "${n}" = PARAM_* ]]; then
+      export ${n##PARAM_}="${v}"
+    fi
+  done < <(env -0)
+fi
+
+# immediately correct PATH if necessary
+export PATH=$(variable_expansion "${PATH}")
 
 # expand nested variables
 if [[ "${HELMFILE_GLOBAL_OPTIONS}" ]]; then
@@ -162,8 +210,10 @@ fi
 
 helmfile="${helmfile} --helm-binary ${helm} --no-color --allow-no-matching-release"
 
-if [[ "${ARGOCD_APP_NAMESPACE}" && ! "${HELMFILE_USE_CONTEXT_NAMESPACE}" ]]; then
-  helmfile="${helmfile} --namespace ${ARGOCD_APP_NAMESPACE}"
+if [[ "${ARGOCD_APP_NAMESPACE}" ]]; then
+  truthy_test ${HELMFILE_USE_CONTEXT_NAMESPACE:-false} || {
+    helmfile="${helmfile} --namespace ${ARGOCD_APP_NAMESPACE}"
+  }
 fi
 
 if [[ "${HELMFILE_GLOBAL_OPTIONS}" ]]; then
@@ -192,6 +242,62 @@ echoerr "$(${helm} version --short --client)"
 echoerr "$(${helmfile} --version)"
 
 case $phase in
+  "parameters")
+    echoerr "starting parameters"
+    cat <<-"EOF"
+[
+  {
+    "name": "HELM_TEMPLATE_OPTIONS",
+    "title": "HELM_TEMPLATE_OPTIONS",
+    "tooltip": "helm template --help"
+  },
+  {
+    "name": "HELMFILE_BINARY",
+    "title": "HELMFILE_BINARY",
+    "tooltip": "custom path to helmfile binary"
+  },
+  {
+    "name": "HELMFILE_GLOBAL_OPTIONS",
+    "title": "HELMFILE_GLOBAL_OPTIONS",
+    "tooltip": "helmfile --help"
+  },
+  {
+    "name": "HELMFILE_HELMFILE",
+    "title": "HELMFILE_HELMFILE",
+    "tooltip": "a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)"
+  },
+  {
+    "name": "HELMFILE_HELMFILE_STRATEGY",
+    "title": "HELMFILE_HELMFILE_STRATEGY",
+    "tooltip": "REPLACE or INCLUDE"
+  },
+  {
+    "name": "HELMFILE_INIT_SCRIPT_FILE",
+    "title": "HELMFILE_INIT_SCRIPT_FILE",
+    "tooltip": "path to script to execute during the init phase"
+  },
+  {
+    "name": "HELMFILE_CACHE_CLEANUP",
+    "title": "HELMFILE_CACHE_CLEANUP",
+    "tooltip": "run helmfile cache cleanup on init",
+    "itemType": "boolean"
+  },
+  {
+    "name": "HELMFILE_USE_CONTEXT_NAMESPACE",
+    "title": "HELMFILE_USE_CONTEXT_NAMESPACE",
+    "tooltip": "do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)",
+    "itemType": "boolean"
+  },
+  {
+    "name": "HELM_DATA_HOME",
+    "title": "HELM_DATA_HOME",
+    "tooltip": "perform variable expansion"
+  }
+]
+EOF
+    exit 0
+    ;;
+
   "discover")
     echoerr "starting discover"
     test -n "$(find . -type d -name "helmfile.d")" && {
@@ -205,12 +311,13 @@ case $phase in
     echoerr "no valid helmfile content discovered"
     exit 1
     ;;
+
   "init")
     echoerr "starting init"
 
-    if [[ "${HELMFILE_CACHE_CLEANUP}" ]]; then
+    truthy_test "${HELMFILE_CACHE_CLEANUP:-false}" && {
       ${helmfile} cache cleanup
-    fi
+    }
 
     # ensure dir(s)
     # rm -rf "${HELM_HOME}"

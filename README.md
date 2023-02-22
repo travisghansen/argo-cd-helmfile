@@ -13,8 +13,8 @@ Support for `helmfile` with `argo-cd`.
 - Because I like the power afforded using `helmfile`'s features such as
   `environments`, `selectors`, templates, and being able to use `ENV` vars as
   conditionals **AND** values.
-- https://github.com/roboll/helmfile/blob/master/docs/writing-helmfile.md
-- https://github.com/roboll/helmfile/blob/master/docs/shared-configuration-across-teams.md
+- https://github.com/helmfile/helmfile/blob/main/docs/writing-helmfile.md
+- https://github.com/helmfile/helmfile/blob/main/docs/shared-configuration-across-teams.md
 
 # Security
 
