@@ -197,7 +197,7 @@ else
           exit 1
           ;;
       esac
-      HELMFILE_VERSION=${HELMFILE_VERSION:-v0.150.0}
+      HELMFILE_VERSION=${HELMFILE_VERSION:-v0.151.0}
       wget -O- "${LOCAL_HELMFILE_BINARY}" "https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION:1}_linux_${GO_ARCH}.tar.gz" | tar zxv -C $(dirname "${LOCAL_HELMFILE_BINARY}") helmfile
       if [[ "$(dirname "${LOCAL_HELMFILE_BINARY}")"/helmfile != "${LOCAL_HELMFILE_BINARY}" ]]; then
         mv "$(dirname "${LOCAL_HELMFILE_BINARY}")"/helmfile "${LOCAL_HELMFILE_BINARY}"
@@ -221,15 +221,22 @@ if [[ "${HELMFILE_GLOBAL_OPTIONS}" ]]; then
 fi
 
 if [[ -v HELMFILE_HELMFILE ]]; then
-  helmfile="${helmfile} -f ${HELMFILE_HELMFILE_HELMFILED}"
+  helmfile="${helmfile} --file ${HELMFILE_HELMFILE_HELMFILED}"
   HELMFILE_HELMFILE_STRATEGY=${HELMFILE_HELMFILE_STRATEGY:=REPLACE}
 fi
+
+# TODO: parse helmfile here to detect the operative -f or --file
 
 # these should work for both v2 and v3
 helm_full_version=$(${helm} version --short --client | cut -d " " -f2)
 helm_major_version=$(echo "${helm_full_version%+*}" | cut -d "." -f1 | sed 's/[^0-9]//g')
 helm_minor_version=$(echo "${helm_full_version%+*}" | cut -d "." -f2 | sed 's/[^0-9]//g')
 helm_patch_version=$(echo "${helm_full_version%+*}" | cut -d "." -f3 | sed 's/[^0-9]//g')
+
+if [[ ${helm_major_version} -eq 3 ]]; then
+  # https://github.com/roboll/helmfile/issues/1015#issuecomment-563488649
+  export HELMFILE_HELM3="1"
+fi
 
 # fix scenarios where KUBE_VERSION is improperly set with trailing +
 # https://github.com/argoproj/argo-cd/issues/8249
@@ -242,76 +249,6 @@ echoerr "$(${helm} version --short --client)"
 echoerr "$(${helmfile} --version)"
 
 case $phase in
-  "parameters")
-    echoerr "starting parameters"
-    cat <<-"EOF"
-[
-  {
-    "name": "HELM_TEMPLATE_OPTIONS",
-    "title": "HELM_TEMPLATE_OPTIONS",
-    "tooltip": "helm template --help"
-  },
-  {
-    "name": "HELMFILE_BINARY",
-    "title": "HELMFILE_BINARY",
-    "tooltip": "custom path to helmfile binary"
-  },
-  {
-    "name": "HELMFILE_GLOBAL_OPTIONS",
-    "title": "HELMFILE_GLOBAL_OPTIONS",
-    "tooltip": "helmfile --help"
-  },
-  {
-    "name": "HELMFILE_HELMFILE",
-    "title": "HELMFILE_HELMFILE",
-    "tooltip": "a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)"
-  },
-  {
-    "name": "HELMFILE_HELMFILE_STRATEGY",
-    "title": "HELMFILE_HELMFILE_STRATEGY",
-    "tooltip": "REPLACE or INCLUDE"
-  },
-  {
-    "name": "HELMFILE_INIT_SCRIPT_FILE",
-    "title": "HELMFILE_INIT_SCRIPT_FILE",
-    "tooltip": "path to script to execute during the init phase"
-  },
-  {
-    "name": "HELMFILE_CACHE_CLEANUP",
-    "title": "HELMFILE_CACHE_CLEANUP",
-    "tooltip": "run helmfile cache cleanup on init",
-    "itemType": "boolean"
-  },
-  {
-    "name": "HELMFILE_USE_CONTEXT_NAMESPACE",
-    "title": "HELMFILE_USE_CONTEXT_NAMESPACE",
-    "tooltip": "do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)",
-    "itemType": "boolean"
-  },
-  {
-    "name": "HELM_DATA_HOME",
-    "title": "HELM_DATA_HOME",
-    "tooltip": "perform variable expansion"
-  }
-]
-EOF
-    exit 0
-    ;;
-
-  "discover")
-    echoerr "starting discover"
-    test -n "$(find . -type d -name "helmfile.d")" && {
-      echo "valid helmfile content discovered"
-      exit 0
-    }
-    test -n "$(find . -type f -name "helmfile.yaml")" && {
-      echo "valid helmfile content discovered"
-      exit 0
-    }
-    echoerr "no valid helmfile content discovered"
-    exit 1
-    ;;
-
   "init")
     echoerr "starting init"
 
@@ -355,17 +292,8 @@ EOF
       echo "${HELMFILE_HELMFILE}" >"${HELMFILE_HELMFILE_HELMFILED}/ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ__argocd__helmfile__.yaml"
     fi
 
-    if [[ ! -d ".__${SCRIPT_NAME}__helmfile.d" ]]; then
-      mkdir -p "${HELM_HOME}"
-    fi
-
     if [[ ${helm_major_version} -eq 2 ]]; then
       ${helm} init --client-only
-    fi
-
-    if [[ ${helm_major_version} -eq 3 ]]; then
-      # https://github.com/roboll/helmfile/issues/1015#issuecomment-563488649
-      export HELMFILE_HELM3="1"
     fi
 
     if [ ! -z "${HELMFILE_INIT_SCRIPT_FILE}" ]; then
@@ -427,6 +355,76 @@ EOF
       --skip-deps ${INTERNAL_HELMFILE_TEMPLATE_OPTIONS} \
       --args "${INTERNAL_HELM_TEMPLATE_OPTIONS} ${HELM_TEMPLATE_OPTIONS}" \
       ${HELMFILE_TEMPLATE_OPTIONS}
+    ;;
+
+  "discover")
+    echoerr "starting discover"
+    test -n "$(find . -type d -name "helmfile.d")" && {
+      echo "valid helmfile content discovered"
+      exit 0
+    }
+    test -n "$(find . -type f -name "helmfile.yaml")" && {
+      echo "valid helmfile content discovered"
+      exit 0
+    }
+    echoerr "no valid helmfile content discovered"
+    exit 1
+    ;;
+
+  "parameters")
+    echoerr "starting parameters"
+    cat <<-"EOF"
+[
+  {
+    "name": "HELM_TEMPLATE_OPTIONS",
+    "title": "HELM_TEMPLATE_OPTIONS",
+    "tooltip": "helm template --help"
+  },
+  {
+    "name": "HELMFILE_BINARY",
+    "title": "HELMFILE_BINARY",
+    "tooltip": "custom path to helmfile binary"
+  },
+  {
+    "name": "HELMFILE_GLOBAL_OPTIONS",
+    "title": "HELMFILE_GLOBAL_OPTIONS",
+    "tooltip": "helmfile --help"
+  },
+  {
+    "name": "HELMFILE_HELMFILE",
+    "title": "HELMFILE_HELMFILE",
+    "tooltip": "a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)"
+  },
+  {
+    "name": "HELMFILE_HELMFILE_STRATEGY",
+    "title": "HELMFILE_HELMFILE_STRATEGY",
+    "tooltip": "REPLACE or INCLUDE"
+  },
+  {
+    "name": "HELMFILE_INIT_SCRIPT_FILE",
+    "title": "HELMFILE_INIT_SCRIPT_FILE",
+    "tooltip": "path to script to execute during the init phase"
+  },
+  {
+    "name": "HELMFILE_CACHE_CLEANUP",
+    "title": "HELMFILE_CACHE_CLEANUP",
+    "tooltip": "run helmfile cache cleanup on init",
+    "itemType": "boolean"
+  },
+  {
+    "name": "HELMFILE_USE_CONTEXT_NAMESPACE",
+    "title": "HELMFILE_USE_CONTEXT_NAMESPACE",
+    "tooltip": "do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)",
+    "itemType": "boolean"
+  },
+  {
+    "name": "HELM_DATA_HOME",
+    "title": "HELM_DATA_HOME",
+    "tooltip": "perform variable expansion"
+  }
+]
+EOF
+    exit 0
     ;;
 
   *)

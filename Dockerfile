@@ -38,7 +38,6 @@ RUN groupadd -g $ARGOCD_USER_ID argocd && \
 ARG AGE_VERSION="v1.0.0"
 # install via apt for now
 #ARG JQ_VERSION="1.6"
-ARG HELM_SECRETS_VERSION="4.3.0"
 ARG HELM2_VERSION="v2.17.0"
 ARG HELM3_VERSION="v3.11.1"
 ARG HELMFILE_VERSION="0.151.0"
@@ -81,7 +80,14 @@ ENV HELM_DATA_HOME=/home/argocd/helm/data
 ENV KREW_ROOT=/home/argocd/krew
 ENV PATH="${KREW_ROOT}/bin:$PATH"
 
+# plugin versions
+ARG HELM_DIFF_VERSION="3.6.0"
+ARG HELM_GIT_VERSION="0.14.3"
+ARG HELM_SECRETS_VERSION="4.3.0"
+
 RUN \
+  helm-v3 plugin install https://github.com/databus23/helm-diff   --version ${HELM_DIFF_VERSION} && \
+  helm-v3 plugin install https://github.com/aslafy-z/helm-git     --version ${HELM_GIT_VERSION} && \
   helm-v3 plugin install https://github.com/jkroepke/helm-secrets --version ${HELM_SECRETS_VERSION} && \
   kubectl krew update && \
   mkdir -p ${KREW_ROOT}/bin && \
