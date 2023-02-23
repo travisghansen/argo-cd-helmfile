@@ -152,9 +152,19 @@ if [[ "${HELMFILE_INIT_SCRIPT_FILE}" ]]; then
   HELMFILE_INIT_SCRIPT_FILE=$(variable_expansion "${HELMFILE_INIT_SCRIPT_FILE}")
 fi
 
+if [[ "${HELM_CACHE_HOME}" ]]; then
+  export HELM_CACHE_HOME=$(variable_expansion "${HELM_CACHE_HOME}")
+fi
+
+if [[ "${HELM_CONFIG_HOME}" ]]; then
+  export HELM_CONFIG_HOME=$(variable_expansion "${HELM_CONFIG_HOME}")
+fi
+
 if [[ "${HELM_DATA_HOME}" ]]; then
   export HELM_DATA_HOME=$(variable_expansion "${HELM_DATA_HOME}")
 fi
+
+
 
 phase=$1
 
@@ -416,7 +426,15 @@ case $phase in
     "title": "HELMFILE_USE_CONTEXT_NAMESPACE",
     "tooltip": "do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)",
     "itemType": "boolean"
-  },
+  }
+]
+EOF
+  
+  exit 0
+
+# not including these are params as they are explicitly used as ENV vars
+read -r -d '' USE_AS_ENVS_TO_NOT_CONFUSE_PEOPLE <<'EOF'
+[
   {
     "name": "HELM_BINARY",
     "title": "HELM_BINARY",
@@ -428,12 +446,23 @@ case $phase in
     "tooltip": "custom path to helmfile binary"
   },
   {
+    "name": "HELM_CACHE_HOME",
+    "title": "HELM_CACHE_HOME",
+    "tooltip": "perform variable expansion"
+  },
+  {
+    "name": "HELM_CONFIG_HOME",
+    "title": "HELM_CONFIG_HOME",
+    "tooltip": "perform variable expansion"
+  },
+  {
     "name": "HELM_DATA_HOME",
     "title": "HELM_DATA_HOME",
     "tooltip": "perform variable expansion"
   }
 ]
 EOF
+
     exit 0
     ;;
 

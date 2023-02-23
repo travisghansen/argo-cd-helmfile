@@ -29,7 +29,48 @@ Consider these implications for your environment and act appropriately.
 
 # Installation
 
+- https://argo-cd.readthedocs.io/en/stable/operator-manual/config-management-plugins/
+
+## Sidecar
+
+This shows optional use of sops/age integration. You may add/remove others as necessary.
+
+```yaml
+repoServer:
+  volumes:
+  ...
+  - name: age-secret-keys
+    secret:
+      secretName: argocd-age-secret-keys
+  - emptyDir: {}
+    name: helmfile-cmp-tmp
+
+  extraContainers:
+  - name: helmfile-plugin
+    image: travisghansen/argo-cd-helmfile:latest
+    command: [/var/run/argocd/argocd-cmp-server]
+    env:
+    ...
+    - name: SOPS_AGE_KEY_FILE
+      value: /sops/age/keys.txt
+    securityContext:
+      runAsNonRoot: true
+      runAsUser: 999
+    volumeMounts:
+      ...
+      - mountPath: /sops/age
+        name: age-secret-keys
+      - mountPath: /var/run/argocd
+        name: var-files
+      - mountPath: /home/argocd/cmp-server/plugins
+        name: plugins
+      - mountPath: /tmp
+        name: helmfile-cmp-tmp
 ```
+
+## ConfigMap (deprecated)
+
+```yaml
     configManagementPlugins: |
       - name: helmfile
         init:                          # Optional command to initialize application source directory
@@ -41,7 +82,7 @@ Consider these implications for your environment and act appropriately.
 
 ```
 
-```
+```yaml
   volumes:
   - name: custom-tools
     emptyDir: {}

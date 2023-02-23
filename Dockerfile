@@ -76,6 +76,14 @@ WORKDIR /home/argocd/cmp-server/config/
 COPY plugin.yaml ./
 WORKDIR /home/argocd
 
+# repo-server containers use /helm-working-dir (empty dir volume helm-working-dir)
+#
+# HELM_CACHE_HOME=/helm-working-dir
+# HELM_CONFIG_HOME=/helm-working-dir
+# HELM_DATA_HOME=/helm-working-dir
+#
+ENV HELM_CACHE_HOME=/home/argocd/helm/cache
+#ENV HELM_CONFIG_HOME=/home/argocd/helm/config
 ENV HELM_DATA_HOME=/home/argocd/helm/data
 ENV KREW_ROOT=/home/argocd/krew
 ENV PATH="${KREW_ROOT}/bin:$PATH"
@@ -95,4 +103,4 @@ RUN \
 
 # array is exec form, string is shell form
 # this binary in injected via a shared folder with the repo server
-ENTRYPOINT [/var/run/argocd/argocd-cmp-server]
+#ENTRYPOINT [/var/run/argocd/argocd-cmp-server]
