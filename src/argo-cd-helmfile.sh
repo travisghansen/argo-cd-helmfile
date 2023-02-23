@@ -381,9 +381,9 @@ case $phase in
     "tooltip": "helm template --help"
   },
   {
-    "name": "HELMFILE_BINARY",
-    "title": "HELMFILE_BINARY",
-    "tooltip": "custom path to helmfile binary"
+    "name": "HELMFILE_TEMPLATE_OPTIONS",
+    "title": "HELMFILE_TEMPLATE_OPTIONS",
+    "tooltip": "helmfile template --help"
   },
   {
     "name": "HELMFILE_GLOBAL_OPTIONS",
@@ -416,6 +416,16 @@ case $phase in
     "title": "HELMFILE_USE_CONTEXT_NAMESPACE",
     "tooltip": "do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)",
     "itemType": "boolean"
+  },
+  {
+    "name": "HELM_BINARY",
+    "title": "HELM_BINARY",
+    "tooltip": "custom path to helm binary"
+  },
+  {
+    "name": "HELMFILE_BINARY",
+    "title": "HELMFILE_BINARY",
+    "tooltip": "custom path to helmfile binary"
   },
   {
     "name": "HELM_DATA_HOME",
