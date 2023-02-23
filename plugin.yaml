@@ -3,7 +3,10 @@ kind: ConfigManagementPlugin
 metadata:
   name: helmfile
 spec:
-  version: v1.0
+  # To use the name instead of discovery, update the name in your application
+  # manifest to <metadata.name>-<spec.version> if version was mentioned in the
+  # ConfigManagementPlugin spec or else just use <metadata.name>
+  #version: v1.0
   init:
     command: ["argo-cd-helmfile.sh"]
     args: ["init"]
