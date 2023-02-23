@@ -164,8 +164,6 @@ if [[ "${HELM_DATA_HOME}" ]]; then
   export HELM_DATA_HOME=$(variable_expansion "${HELM_DATA_HOME}")
 fi
 
-
-
 phase=$1
 
 # setup the env
@@ -429,11 +427,11 @@ case $phase in
   }
 ]
 EOF
-  
-  exit 0
 
-# not including these are params as they are explicitly used as ENV vars
-read -r -d '' USE_AS_ENVS_TO_NOT_CONFUSE_PEOPLE <<'EOF'
+    exit 0
+
+    # not including these are params as they are explicitly used as ENV vars
+    read -r -d '' USE_AS_ENVS_TO_NOT_CONFUSE_PEOPLE <<'EOF'
 [
   {
     "name": "HELM_BINARY",
