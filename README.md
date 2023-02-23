@@ -165,7 +165,7 @@ var during the `helm plugin add` command) and simply set the `HELM_DATA_HOME`
 environment variable in your application spec (or globally in the pod). This
 prevents the plugin(s) from being downloaded over and over each run.
 
-```
+```yaml
 # repo server deployment
   volumes:
   ...
