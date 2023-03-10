@@ -10,7 +10,11 @@
 # HELMFILE_HELMFILE_STRATEGY - REPLACE or INCLUDE
 # HELMFILE_INIT_SCRIPT_FILE - path to script to execute during the init phase
 # HELMFILE_CACHE_CLEANUP - run helmfile cache cleanup on init
+# HELMFILE_REPO_CACHE_TIMEOUT - seconds to cache the repo update process
 # HELMFILE_USE_CONTEXT_NAMESPACE - do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)
+# HELM_HOME - perform variable expansion
+# HELM_CACHE_HOME - perform variable expansion
+# HELM_CONFIG_HOME - perform variable expansion
 # HELM_DATA_HOME - perform variable expansion
 
 # NOTE: only 1 -f value/file/dir is used by helmfile, while you can specific -f multiple times
@@ -99,6 +103,50 @@ truthy_test() {
   return 1
 }
 
+cache_set_time() {
+  local key="${1}"
+  touch "${HOME}/${key}"
+}
+
+cache_get_time() {
+  local key="${1}"
+  if [[ -f "${HOME}/${key}" ]]; then
+    echo $(stat -c %Y "${HOME}/${key}")
+  fi
+}
+
+cache_is_valid() {
+  local key="${1}"
+  local timeout="${2}"
+
+  if [[ -z "${key}" ]]; then
+    return 1
+  fi
+
+  if [[ -z ${timeout} || ${timeout} -lt 1 ]]; then
+    return 1
+  fi
+
+  local cache_time=$(cache_get_time "${key}")
+  if [[ -z $cache_time ]]; then
+    return 1
+  fi
+
+  local current_time=$(date +%s)
+  local cache_time_diff=$(($current_time - $cache_time))
+
+  if [[ "${cache_time_diff}" -gt "${timeout}" ]]; then
+    return 1
+  fi
+}
+
+cache_is_expired() {
+  local key="${1}"
+  local timeout="${2}"
+
+  ! cache_is_valid "${key}" "${timeout}"
+}
+
 # exit immediately if no phase is passed in
 if [[ -z "${1}" ]]; then
   echoerr "invalid invocation"
@@ -164,12 +212,23 @@ if [[ "${HELM_DATA_HOME}" ]]; then
   export HELM_DATA_HOME=$(variable_expansion "${HELM_DATA_HOME}")
 fi
 
-phase=$1
-
 # setup the env
 # HELM_HOME is deprecated with helm-v3, uses XDG dirs
-export HELM_HOME="/tmp/__${SCRIPT_NAME}__/apps/${ARGOCD_APP_NAME}"
+if [[ "${HELM_HOME}" ]]; then
+  export HELM_HOME=$(variable_expansion "${HELM_HOME}")
+else
+  export HELM_HOME="/tmp/__${SCRIPT_NAME}__/apps/${ARGOCD_APP_NAME}"
+fi
+
+# ensure dir(s)
+# rm -rf "${HELM_HOME}"
+if [[ ! -d "${HELM_HOME}" ]]; then
+  mkdir -p "${HELM_HOME}"
+fi
+
 export HELMFILE_HELMFILE_HELMFILED="${PWD}/.__${SCRIPT_NAME}__helmfile.d"
+
+phase=$1
 
 if [[ ! -d "/tmp/__${SCRIPT_NAME}__/bin" ]]; then
   mkdir -p "/tmp/__${SCRIPT_NAME}__/bin"
@@ -185,35 +244,7 @@ fi
 if [[ "${HELMFILE_BINARY}" ]]; then
   helmfile="${HELMFILE_BINARY}"
 else
-  if [[ $(which helmfile) ]]; then
-    helmfile="$(which helmfile)"
-  else
-    LOCAL_HELMFILE_BINARY="/tmp/__${SCRIPT_NAME}__/bin/helmfile"
-    if [[ ! -x "${LOCAL_HELMFILE_BINARY}" ]]; then
-      case $(uname -m) in
-        "x86")
-          GO_ARCH=386
-          ;;
-        "x86_64")
-          GO_ARCH=amd64
-          ;;
-        "aarch64")
-          GO_ARCH=arm64
-          ;;
-        *)
-          echoerr "unknow arch to download helmfile"
-          exit 1
-          ;;
-      esac
-      HELMFILE_VERSION=${HELMFILE_VERSION:-v0.151.0}
-      wget -O- "${LOCAL_HELMFILE_BINARY}" "https://github.com/helmfile/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_${HELMFILE_VERSION:1}_linux_${GO_ARCH}.tar.gz" | tar zxv -C $(dirname "${LOCAL_HELMFILE_BINARY}") helmfile
-      if [[ "$(dirname "${LOCAL_HELMFILE_BINARY}")"/helmfile != "${LOCAL_HELMFILE_BINARY}" ]]; then
-        mv "$(dirname "${LOCAL_HELMFILE_BINARY}")"/helmfile "${LOCAL_HELMFILE_BINARY}"
-      fi
-      chmod +x "${LOCAL_HELMFILE_BINARY}"
-    fi
-    helmfile="${LOCAL_HELMFILE_BINARY}"
-  fi
+  helmfile="$(which helmfile)"
 fi
 
 helmfile="${helmfile} --helm-binary ${helm} --no-color --allow-no-matching-release"
@@ -256,19 +287,13 @@ export HOME="${HELM_HOME}"
 echoerr "$(${helm} version --short --client)"
 echoerr "$(${helmfile} --version)"
 
+echoerr "starting ${phase}"
+
 case $phase in
   "init")
-    echoerr "starting init"
-
     truthy_test "${HELMFILE_CACHE_CLEANUP:-false}" && {
       ${helmfile} cache cleanup
     }
-
-    # ensure dir(s)
-    # rm -rf "${HELM_HOME}"
-    if [[ ! -d "${HELM_HOME}" ]]; then
-      mkdir -p "${HELM_HOME}"
-    fi
 
     if [[ -v HELMFILE_HELMFILE ]]; then
       rm -rf "${HELMFILE_HELMFILE_HELMFILED}"
@@ -309,13 +334,20 @@ case $phase in
       bash "${HELMFILE_INIT_SCRIPT_FILE}"
     fi
 
-    # https://github.com/roboll/helmfile/issues/1064
-    ${helmfile} repos
+    # using app revision here to ensure if the git repo is updated the cache is busted
+    cache_key="plugin-${phase}-repos-${ARGOCD_APP_REVISION}"
+    cache_is_expired "${cache_key}" "${HELMFILE_REPO_CACHE_TIMEOUT}" && {
+      # https://github.com/roboll/helmfile/issues/1064
+      ${helmfile} repos
+      cache_set_time "${cache_key}"
+      # TODO: fetch here?
+      #${helmfile} fetch
+    } || {
+      echoerr "skipping repos update due to cache"
+    }
     ;;
 
   "generate")
-    echoerr "starting generate"
-
     INTERNAL_HELMFILE_TEMPLATE_OPTIONS=
     INTERNAL_HELM_TEMPLATE_OPTIONS=
 
@@ -358,6 +390,7 @@ case $phase in
       INTERNAL_HELM_TEMPLATE_OPTIONS="${INTERNAL_HELM_TEMPLATE_OPTIONS} ${INTERNAL_HELM_API_VERSIONS}"
     fi
 
+    # TODO: support post process pipeline here
     ${helmfile} \
       template \
       --skip-deps ${INTERNAL_HELMFILE_TEMPLATE_OPTIONS} \
@@ -366,7 +399,6 @@ case $phase in
     ;;
 
   "discover")
-    echoerr "starting discover"
     test -n "$(find . -type d -name "helmfile.d")" && {
       echo "valid helmfile content discovered"
       exit 0
@@ -380,7 +412,6 @@ case $phase in
     ;;
 
   "parameters")
-    echoerr "starting parameters"
     cat <<-"EOF"
 [
   {
@@ -469,3 +500,5 @@ EOF
     exit 1
     ;;
 esac
+
+echoerr "finishing ${phase}"
