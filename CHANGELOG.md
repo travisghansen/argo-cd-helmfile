@@ -1,3 +1,9 @@
+# v0.3.1
+
+Released 2023-03-10
+
+- more robust logic for `discover` operations
+
 # v0.3.0
 
 Released 2023-03-10
