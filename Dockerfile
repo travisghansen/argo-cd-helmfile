@@ -39,8 +39,9 @@ ARG AGE_VERSION="v1.0.0"
 # install via apt for now
 #ARG JQ_VERSION="1.6"
 ARG HELM2_VERSION="v2.17.0"
-ARG HELM3_VERSION="v3.11.1"
+ARG HELM3_VERSION="v3.11.2"
 ARG HELMFILE_VERSION="0.151.0"
+ARG KUSTOMIZE5_VERSION="5.0.1"
 ARG SOPS_VERSION="v3.7.3"
 ARG YQ_VERSION="v4.11.1"
 
@@ -61,6 +62,7 @@ RUN \
     wget -qO "/usr/local/bin/kubectl"  "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${GO_ARCH}/kubectl" && \
     wget -qO-                          "https://github.com/kubernetes-sigs/krew/releases/download/${KREW_VERSION}/krew-linux_${GO_ARCH}.tar.gz" | tar zxv -C /tmp ./krew-linux_${GO_ARCH} && mv /tmp/krew-linux_${GO_ARCH} /usr/local/bin/kubectl-krew && \
     wget -qO-                          "https://github.com/bitnami-labs/sealed-secrets/releases/download/v${KUBESEAL_VERSION}/kubeseal-${KUBESEAL_VERSION}-linux-${GO_ARCH}.tar.gz" | tar zxv -C /usr/local/bin kubeseal && \
+    wget -qO-                          "https://github.com/kubernetes-sigs/kustomize/releases/download/kustomize%2Fv${KUSTOMIZE5_VERSION}/kustomize_v${KUSTOMIZE5_VERSION}_linux_${GO_ARCH}.tar.gz" | tar zxv -C /usr/local/bin kustomize && \
     true
 
 COPY src/*.sh /usr/local/bin/

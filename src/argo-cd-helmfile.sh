@@ -248,6 +248,9 @@ else
   helmfile="$(which helmfile)"
 fi
 
+echoerr "$(${helm} version --short --client)"
+echoerr "$(${helmfile} --version)"
+
 helmfile="${helmfile} --helm-binary ${helm} --no-color --allow-no-matching-release"
 
 if [[ "${ARGOCD_APP_NAMESPACE}" ]]; then
@@ -284,9 +287,6 @@ KUBE_VERSION=$(echo "${KUBE_VERSION}" | sed 's/[^0-9\.]*//g')
 
 # set home variable to ensure apps do NOT overlap settings/repos/etc
 export HOME="${HELM_HOME}"
-
-echoerr "$(${helm} version --short --client)"
-echoerr "$(${helmfile} --version)"
 
 echoerr "starting ${phase}"
 

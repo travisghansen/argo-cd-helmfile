@@ -1,3 +1,10 @@
+# v0.3.2
+
+Released 2023-03-16
+
+- add `kustomize` binary to image
+- bump helm3 version
+
 # v0.3.1
 
 Released 2023-03-10
