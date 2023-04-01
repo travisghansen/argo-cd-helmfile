@@ -400,7 +400,7 @@ case $phase in
     ;;
 
   "discover")
-    if [[ ! -z "${HELMFILE_DISCOVERY_RESPONSE}" ]];then
+    if [[ ! -z "${HELMFILE_DISCOVERY_RESPONSE}" ]]; then
       truthy_test "${HELMFILE_DISCOVERY_RESPONSE}" && {
         echo "forced discovery response: enabled"
         exit 0
@@ -410,12 +410,12 @@ case $phase in
       }
     fi
 
-    if [[ "${HELMFILE_GLOBAL_OPTIONS}" == *--file* ]];then
+    if [[ "${HELMFILE_GLOBAL_OPTIONS}" == *--file* ]]; then
       echo "custom file path provided, assumed proper"
       exit 0
     fi
 
-    if [[ "${HELMFILE_GLOBAL_OPTIONS}" == *-f* ]];then
+    if [[ "${HELMFILE_GLOBAL_OPTIONS}" == *-f* ]]; then
       echo "custom file path provided, assumed proper"
       exit 0
     fi
@@ -424,7 +424,7 @@ case $phase in
       echo "complete helmfile provided, assumed proper"
       exit 0
     fi
-    
+
     test -n "$(find . -type d -name "helmfile.d")" && {
       echo "valid helmfile content discovered"
       exit 0
