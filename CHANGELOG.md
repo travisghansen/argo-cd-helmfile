@@ -1,3 +1,11 @@
+# v0.3.3
+
+Released 2023-04-01
+
+- introduce `HELMFILE_DISCOVERY_RESPONSE` var to force a discovery response
+- enable `preserveFileMode` in the cmp config (see #37)
+- bump `helmfile` version
+
 # v0.3.2
 
 Released 2023-03-16

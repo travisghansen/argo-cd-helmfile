@@ -34,13 +34,55 @@ RUN groupadd -g $ARGOCD_USER_ID argocd && \
     chown argocd:0 /home/argocd && \
     chmod g=u /home/argocd
 
+# aws
+# https://www.educative.io/collection/page/6630002/6521965765984256/6553354502668288
+#
+#ARG INSTALL_AWS_TOOLS
+#RUN apt-get update && apt-get install --no-install-recommends -y \
+#    awscli \
+#    && \
+#    apt-get clean && \
+#    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# az cli
+# https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-linux?pivots=apt
+#
+#ARG INSTALL_AZURE_TOOLS
+#RUN apt-get update && apt-get install --no-install-recommends -y \
+#    ca-certificates curl apt-transport-https lsb-release gnupg \
+#    && \
+#    mkdir -p /etc/apt/keyrings && \
+#    curl -sLS https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor | tee /etc/apt/keyrings/microsoft.gpg > /dev/null && \
+#    chmod go+r /etc/apt/keyrings/microsoft.gpg && \
+#    AZ_REPO=$(lsb_release -cs) && \
+#    echo "deb [arch=`dpkg --print-architecture` signed-by=/etc/apt/keyrings/microsoft.gpg] https://packages.microsoft.com/repos/azure-cli/ $AZ_REPO main" | tee /etc/apt/sources.list.d/azure-cli.list && \
+#    apt-get update && apt-get install --no-install-recommends -y \
+#    azure-cli && \
+#    apt-get clean && \
+#    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+# gcloud cli
+# https://cloud.google.com/sdk/docs/install#deb
+#
+#ARG INSTALL_GCLOUD_TOOLS
+#RUN apt-get update && apt-get install --no-install-recommends -y \
+#    apt-transport-https ca-certificates gnupg \
+#    && \
+#    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list && \
+#    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key --keyring /usr/share/keyrings/cloud.google.gpg add - && \
+#    apt-get update && apt-get install --no-install-recommends -y \
+#    google-cloud-cli && \
+#    apt-get clean && \
+#    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # binary versions
 ARG AGE_VERSION="v1.0.0"
 # install via apt for now
 #ARG JQ_VERSION="1.6"
 ARG HELM2_VERSION="v2.17.0"
 ARG HELM3_VERSION="v3.11.2"
-ARG HELMFILE_VERSION="0.151.0"
+ARG HELMFILE_VERSION="0.152.0"
 ARG KUSTOMIZE5_VERSION="5.0.1"
 ARG SOPS_VERSION="v3.7.3"
 ARG YQ_VERSION="v4.11.1"

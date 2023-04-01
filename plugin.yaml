@@ -26,3 +26,6 @@ spec:
     #  collectionType: array
     dynamic:
       command: [argo-cd-helmfile.sh, parameters]
+  # https://github.com/argoproj/argo-cd/pull/12940
+  # https://github.com/travisghansen/argo-cd-helmfile/issues/37
+  preserveFileMode: true

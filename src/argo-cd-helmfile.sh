@@ -12,7 +12,7 @@
 # HELMFILE_CACHE_CLEANUP - run helmfile cache cleanup on init
 # HELMFILE_REPO_CACHE_TIMEOUT - seconds to cache the repo update process
 # HELMFILE_USE_CONTEXT_NAMESPACE - do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)
-# HELMFILE_IGNORE_DISCOVERY - always return true for discovery
+# HELMFILE_DISCOVERY_RESPONSE - truthy value for forced response
 # HELM_HOME - perform variable expansion
 # HELM_CACHE_HOME - perform variable expansion
 # HELM_CONFIG_HOME - perform variable expansion
@@ -400,10 +400,15 @@ case $phase in
     ;;
 
   "discover")
-    truthy_test "${HELMFILE_IGNORE_DISCOVERY:-false}" && {
-      echo "ignore discovery enabled"
-      exit 0
-    }
+    if [[ ! -z "${HELMFILE_DISCOVERY_RESPONSE}" ]];then
+      truthy_test "${HELMFILE_DISCOVERY_RESPONSE}" && {
+        echo "forced discovery response: enabled"
+        exit 0
+      } || {
+        echo "forced discovery response: disabled"
+        exit 1
+      }
+    fi
 
     if [[ "${HELMFILE_GLOBAL_OPTIONS}" == *--file* ]];then
       echo "custom file path provided, assumed proper"
