@@ -3,6 +3,7 @@
 Released 2023-04-14
 
 - support `HELMFILE_ENV_FILE`
+- more strict discovery logic
 
 # v0.3.3
 

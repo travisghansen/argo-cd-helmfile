@@ -436,15 +436,29 @@ case $phase in
       exit 0
     fi
 
-    test -n "$(find . -type d -name "helmfile.d")" && {
+    if [[ -f "helmfile.yaml" ]]; then
       echo "valid helmfile content discovered"
       exit 0
-    }
-    test -n "$(find . -type f -name "helmfile.yaml")" && {
+    fi
+
+    if [[ -d "helmfile.d" ]]; then
       echo "valid helmfile content discovered"
       exit 0
-    }
-    echoerr "no valid helmfile content discovered"
+    fi
+
+    # provides false positive if --file or -f is omitted
+    #test -n "$(find . -type d -name "helmfile.d")" && {
+    #  echo "valid helmfile content discovered"
+    #  exit 0
+    #}
+
+    # provides false positive if --file or -f is omitted
+    #test -n "$(find . -type f -name "helmfile.yaml")" && {
+    #  echo "valid helmfile content discovered"
+    #  exit 0
+    #}
+
+    echo "no valid helmfile content discovered"
     exit 1
     ;;
 
