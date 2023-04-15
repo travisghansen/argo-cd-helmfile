@@ -9,6 +9,7 @@
 # HELMFILE_HELMFILE - a complete helmfile.yaml (ignores standard helmfile.yaml and helmfile.d if present based on strategy)
 # HELMFILE_HELMFILE_STRATEGY - REPLACE or INCLUDE
 # HELMFILE_INIT_SCRIPT_FILE - path to script to execute during the init phase
+# HELMFILE_ENV_FILE - path to env file (or anything) to source
 # HELMFILE_CACHE_CLEANUP - run helmfile cache cleanup on init
 # HELMFILE_REPO_CACHE_TIMEOUT - seconds to cache the repo update process
 # HELMFILE_USE_CONTEXT_NAMESPACE - do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)
@@ -201,6 +202,16 @@ if [[ "${HELMFILE_INIT_SCRIPT_FILE}" ]]; then
   HELMFILE_INIT_SCRIPT_FILE=$(variable_expansion "${HELMFILE_INIT_SCRIPT_FILE}")
 fi
 
+: "${HELMFILE_ENV_FILE:=".argo-cd-helmfile-env"}"
+if [[ "${HELMFILE_ENV_FILE}" ]]; then
+  HELMFILE_ENV_FILE=$(variable_expansion "${HELMFILE_ENV_FILE}")
+fi
+
+if [[ -f "${HELMFILE_ENV_FILE}" ]]; then
+  echoerr "sourcing env file: ${HELMFILE_ENV_FILE}"
+  source "${HELMFILE_ENV_FILE}"
+fi
+
 if [[ "${HELM_CACHE_HOME}" ]]; then
   export HELM_CACHE_HOME=$(variable_expansion "${HELM_CACHE_HOME}")
 fi
@@ -248,7 +259,7 @@ else
   helmfile="$(which helmfile)"
 fi
 
-echoerr "$(${helm} version --short --client)"
+echoerr "helm version $(${helm} version --short --client)"
 echoerr "$(${helmfile} --version)"
 
 helmfile="${helmfile} --helm-binary ${helm} --no-color --allow-no-matching-release"

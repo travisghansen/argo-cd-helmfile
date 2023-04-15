@@ -1,3 +1,9 @@
+# v0.3.4
+
+Released 2023-04-14
+
+- support `HELMFILE_ENV_FILE`
+
 # v0.3.3
 
 Released 2023-04-01
