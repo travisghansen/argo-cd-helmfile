@@ -1,3 +1,9 @@
+# v0.3.5
+
+Released 2023-04-28
+
+- bump `helm` and `helmfile` versions
+
 # v0.3.4
 
 Released 2023-04-14
