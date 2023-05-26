@@ -348,15 +348,16 @@ case $phase in
 
     # using app revision here to ensure if the git repo is updated the cache is busted
     cache_key="plugin-${phase}-repos-${ARGOCD_APP_REVISION}"
-    cache_is_expired "${cache_key}" "${HELMFILE_REPO_CACHE_TIMEOUT}" && {
+
+    if cache_is_expired "${cache_key}" "${HELMFILE_REPO_CACHE_TIMEOUT}"; then
       # https://github.com/roboll/helmfile/issues/1064
       ${helmfile} repos
       cache_set_time "${cache_key}"
       # TODO: fetch here?
       #${helmfile} fetch
-    } || {
+    else
       echoerr "skipping repos update due to cache"
-    }
+    fi
     ;;
 
   "generate")

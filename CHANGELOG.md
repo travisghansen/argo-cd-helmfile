@@ -1,3 +1,10 @@
+# v0.3.6
+
+Released 2023-05-26
+
+- bump `helm` and `helmfile` versions
+- fix bad bash if/then/else logic (#40)
+
 # v0.3.5
 
 Released 2023-04-28

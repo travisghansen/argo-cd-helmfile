@@ -25,6 +25,7 @@ both explicitly (see `HELMFILE_INIT_SCRIPT_FILE` env below) and implicity.
 Consider these implications for your environment and act appropriately.
 
 - https://github.com/roboll/helmfile#templating (`exec` desciption)
+- https://github.com/helmfile/helmfile/pull/1 (can disable `exec` using env vars)
 - the execution pod/context is the `argocd-repo-server`
 
 # Installation
