@@ -77,20 +77,21 @@ RUN groupadd -g $ARGOCD_USER_ID argocd && \
 #    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # binary versions
-ARG AGE_VERSION="v1.0.0"
+ARG AGE_VERSION="v1.1.1"
 # install via apt for now
 #ARG JQ_VERSION="1.6"
 ARG HELM2_VERSION="v2.17.0"
-ARG HELM3_VERSION="v3.12.0"
+ARG HELM3_VERSION="v3.12.3"
 ARG HELMFILE_VERSION="0.157.0"
-ARG KUSTOMIZE5_VERSION="5.0.1"
-ARG SOPS_VERSION="v3.7.3"
-ARG YQ_VERSION="v4.11.1"
+ARG KUSTOMIZE5_VERSION="5.1.1"
+ARG SOPS_VERSION="v3.8.0"
+ARG YQ_VERSION="v4.35.1"
 
 # relevant for kubectl if installed
-ARG KUBESEAL_VERSION="0.19.5"
-ARG KUBECTL_VERSION="v1.26.1"
-ARG KREW_VERSION="v0.4.3"
+ARG KUBESEAL_VERSION="0.24.0"
+# curl -v -L 'https://dl.k8s.io/release/stable.txt'
+ARG KUBECTL_VERSION="v1.28.2"
+ARG KREW_VERSION="v0.4.4"
 
 # wget -qO "/usr/local/bin/jq"       "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" && \
 RUN \
