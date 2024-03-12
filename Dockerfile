@@ -81,7 +81,7 @@ ARG AGE_VERSION="v1.1.1"
 # install via apt for now
 #ARG JQ_VERSION="1.6"
 ARG HELM2_VERSION="v2.17.0"
-ARG HELM3_VERSION="v3.14.0"
+ARG HELM3_VERSION="v3.14.2"
 ARG HELMFILE_VERSION="0.162.0"
 ARG KUSTOMIZE5_VERSION="5.1.1"
 ARG SOPS_VERSION="v3.8.1"
@@ -90,7 +90,7 @@ ARG YQ_VERSION="v4.35.1"
 # relevant for kubectl if installed
 ARG KUBESEAL_VERSION="0.24.5"
 # curl -v -L 'https://dl.k8s.io/release/stable.txt'
-ARG KUBECTL_VERSION="v1.28.2"
+ARG KUBECTL_VERSION="v1.29.2"
 ARG KREW_VERSION="v0.4.4"
 
 # wget -qO "/usr/local/bin/jq"       "https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64" && \
@@ -134,9 +134,9 @@ ENV KREW_ROOT=/home/argocd/krew
 ENV PATH="${KREW_ROOT}/bin:$PATH"
 
 # plugin versions
-ARG HELM_DIFF_VERSION="3.6.0"
-ARG HELM_GIT_VERSION="0.14.3"
-ARG HELM_SECRETS_VERSION="4.3.0"
+ARG HELM_DIFF_VERSION="3.9.5"
+ARG HELM_GIT_VERSION="0.15.1"
+ARG HELM_SECRETS_VERSION="4.6.0"
 
 RUN \
   helm-v3 plugin install https://github.com/databus23/helm-diff   --version ${HELM_DIFF_VERSION} && \
