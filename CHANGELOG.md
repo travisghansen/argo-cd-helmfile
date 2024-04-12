@@ -1,3 +1,10 @@
+# v0.3.11
+
+Released 2024-04-12
+
+- bump binary versions
+- include `yaml-files-to-array.sh`
+
 # v0.3.7
 
 Released 2023-09-18
