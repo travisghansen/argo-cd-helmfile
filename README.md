@@ -24,7 +24,7 @@ both explicitly (see `HELMFILE_INIT_SCRIPT_FILE` env below) and implicity.
 
 Consider these implications for your environment and act appropriately.
 
-- https://github.com/roboll/helmfile#templating (`exec` desciption)
+- https://github.com/roboll/helmfile#templating (`exec` description)
 - https://github.com/helmfile/helmfile/pull/1 (can disable `exec` using env vars)
 - the execution pod/context is the `argocd-repo-server`
 
@@ -112,7 +112,7 @@ repoServer:
 # Usage
 
 Configure your `argo-cd` app to use a repo/directory which holds a valid
-`helmfile` configuation. This can be a directory which contains a
+`helmfile` configuration. This can be a directory which contains a
 `helmfile.yaml` file **OR** a `helmfile.d` directory containing any number of
 `*.yaml` files. You cannot have both configurations.
 
@@ -161,7 +161,7 @@ variables declared in the application spec.
 ## Helm Plugins
 
 To use the various helm plugins the recommended approach is the install the
-plugins using the/an `initContainers` (explicity set the `HELM_DATA_HOME` env
+plugins using the/an `initContainers` (explicitly set the `HELM_DATA_HOME` env
 var during the `helm plugin add` command) and simply set the `HELM_DATA_HOME`
 environment variable in your application spec (or globally in the pod). This
 prevents the plugin(s) from being downloaded over and over each run.
