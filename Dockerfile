@@ -81,10 +81,10 @@ ARG AGE_VERSION="v1.1.1"
 # install via apt for now
 #ARG JQ_VERSION="1.6"
 ARG HELM2_VERSION="v2.17.0"
-ARG HELM3_VERSION="v3.14.4"
-ARG HELMFILE_VERSION="0.163.1"
+ARG HELM3_VERSION="v3.15.3"
+ARG HELMFILE_VERSION="0.167.1"
 ARG KUSTOMIZE5_VERSION="5.1.1"
-ARG SOPS_VERSION="v3.8.1"
+ARG SOPS_VERSION="v3.9.0"
 ARG YQ_VERSION="v4.35.1"
 
 # relevant for kubectl if installed
@@ -139,12 +139,12 @@ ARG HELM_GIT_VERSION="0.15.1"
 ARG HELM_SECRETS_VERSION="4.6.0"
 
 RUN \
-  helm-v3 plugin install https://github.com/databus23/helm-diff   --version ${HELM_DIFF_VERSION} && \
-  helm-v3 plugin install https://github.com/aslafy-z/helm-git     --version ${HELM_GIT_VERSION} && \
-  helm-v3 plugin install https://github.com/jkroepke/helm-secrets --version ${HELM_SECRETS_VERSION} && \
-  kubectl krew update && \
-  mkdir -p ${KREW_ROOT}/bin && \
-  true
+    helm-v3 plugin install https://github.com/databus23/helm-diff   --version ${HELM_DIFF_VERSION} && \
+    helm-v3 plugin install https://github.com/aslafy-z/helm-git     --version ${HELM_GIT_VERSION} && \
+    helm-v3 plugin install https://github.com/jkroepke/helm-secrets --version ${HELM_SECRETS_VERSION} && \
+    kubectl krew update && \
+    mkdir -p ${KREW_ROOT}/bin && \
+    true
 
 # array is exec form, string is shell form
 # this binary in injected via a shared folder with the repo server
