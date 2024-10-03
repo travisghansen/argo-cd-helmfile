@@ -423,6 +423,9 @@ case $phase in
     ;;
 
   "discover")
+    # https://github.com/argoproj/argo-cd/issues/4831
+    # discovery by default is not executed in the ARGOCD_APP_SOURCE_PATH
+    # discovery broken in 2.7.4
     if [[ ! -z "${HELMFILE_DISCOVERY_RESPONSE}" ]]; then
       truthy_test "${HELMFILE_DISCOVERY_RESPONSE}" && {
         echo "forced discovery response: enabled"
