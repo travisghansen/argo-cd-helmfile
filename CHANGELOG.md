@@ -1,3 +1,11 @@
+# v0.3.13
+
+Released 2024-10-02
+
+- support `helmfile.yaml.gotmpl`
+- bump binary versions
+- bump base image for containers from `22:04` to `24:04`
+
 # v0.3.11
 
 Released 2024-04-12
