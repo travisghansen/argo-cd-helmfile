@@ -313,12 +313,23 @@ case $phase in
 
       case "${HELMFILE_HELMFILE_STRATEGY}" in
         "INCLUDE")
-          if [[ -f "helmfile.yaml" && -d "helmfile.d" ]]; then
-            echoerr "configuration conlict error: you can have either helmfile.yaml or helmfile.d, but not both"
+
+          count=0
+
+          [[ -f "helmfile.yaml" ]] && ((count++))
+          [[ -f "helmfile.yaml.gotmpl" ]] && ((count++))
+          [[ -d "helmfile.d" ]] && ((count++))
+
+          if [[ $count -gt 1 ]]; then
+            echoerr "You can have either helmfile.yaml, helmfile.yaml.gotmpl, or helmfile.d, but not more than one"
           fi
 
           if [[ -f "helmfile.yaml" ]]; then
             cp -a "helmfile.yaml" "${HELMFILE_HELMFILE_HELMFILED}/"
+          fi
+
+          if [[ -f "helmfile.yaml.gotmpl" ]]; then
+            cp -a "helmfile.yaml.gotmpl" "${HELMFILE_HELMFILE_HELMFILED}/"
           fi
 
           if [[ -d "helmfile.d" ]]; then
@@ -438,6 +449,11 @@ case $phase in
     fi
 
     if [[ -f "helmfile.yaml" ]]; then
+      echo "valid helmfile content discovered"
+      exit 0
+    fi
+
+    if [[ -f "helmfile.yaml.gotmpl" ]]; then
       echo "valid helmfile content discovered"
       exit 0
     fi

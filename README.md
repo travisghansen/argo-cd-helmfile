@@ -113,8 +113,8 @@ repoServer:
 
 Configure your `argo-cd` app to use a repo/directory which holds a valid
 `helmfile` configuration. This can be a directory which contains a
-`helmfile.yaml` file **OR** a `helmfile.d` directory containing any number of
-`*.yaml` files. You cannot have both configurations.
+`helmfile.yaml` **OR** `helmfile.yaml.gotmpl` file **OR** a `helmfile.d` directory containing any number of
+`*.yaml` or `*.yaml.gotmpl` files. You cannot have both configurations.
 
 There are a number of specially handled `ENV` variables which can be set (all
 optional):
@@ -130,7 +130,7 @@ optional):
 - `HELMFILE_TEMPLATE_OPTIONS` - pass-through options for the templating
   operation `helmfile template --help`
 - `HELMFILE_INIT_SCRIPT_FILE` - path to script to execute during init phase
-- `HELMFILE_HELMFILE` - a complete `helmfile.yaml` content
+- `HELMFILE_HELMFILE` - a complete `helmfile.yaml` or `helmfile.yaml.gotmpl` content
 - `HELMFILE_HELMFILE_STRATEGY` - one of `REPLACE` or `INCLUDE`
   - `REPLACE` - the default option, only the content of `HELMFILE_HELMFILE` is
     rendered, if any valid files exist in the repo they are ignored
