@@ -14,6 +14,7 @@
 # HELMFILE_REPO_CACHE_TIMEOUT - seconds to cache the repo update process
 # HELMFILE_USE_CONTEXT_NAMESPACE - do not set helmfile namespace to ARGOCD_APP_NAMESPACE (for multi-namespace apps)
 # HELMFILE_DISCOVERY_RESPONSE - truthy value for forced response
+# HELMFILE_PASS_VERSIONS - pass the K8s and API versions as command-line args
 # HELM_HOME - perform variable expansion
 # HELM_CACHE_HOME - perform variable expansion
 # HELM_CONFIG_HOME - perform variable expansion
@@ -184,6 +185,10 @@ fi
 
 # immediately correct PATH if necessary
 export PATH=$(variable_expansion "${PATH}")
+
+# pass k8s and api versions to helm as command-line args if set to true
+# maybe set to false for some edge cases like working with OCI registry
+ : ${HELMFILE_PASS_VERSIONS:=true}
 
 # expand nested variables
 if [[ "${HELMFILE_GLOBAL_OPTIONS}" ]]; then
@@ -396,17 +401,17 @@ case $phase in
     # --no-hooks                   prevent hooks from running during install
     # --skip-crds                  if set, no CRDs will be installed. By default, CRDs are installed if not already present
 
-    if [[ ${helm_major_version} -eq 2 && "${KUBE_VERSION}" ]]; then
+    if truthy_test "${HELMFILE_PASS_VERSIONS}" && [[ ${helm_major_version} -eq 2 && "${KUBE_VERSION}" ]]; then
       INTERNAL_HELM_TEMPLATE_OPTIONS="${INTERNAL_HELM_TEMPLATE_OPTIONS} --kube-version=${KUBE_VERSION}"
     fi
 
     # support added for --kube-version in 3.6
     # https://github.com/helm/helm/pull/9040
-    if [[ ${helm_major_version} -eq 3 && ${helm_minor_version} -ge 6 && "${KUBE_VERSION}" ]]; then
+    if truthy_test "${HELMFILE_PASS_VERSIONS}" && [[ ${helm_major_version} -eq 3 && ${helm_minor_version} -ge 6 && "${KUBE_VERSION}" ]]; then
       INTERNAL_HELM_TEMPLATE_OPTIONS="${INTERNAL_HELM_TEMPLATE_OPTIONS} --kube-version=${KUBE_VERSION}"
     fi
 
-    if [[ ${helm_major_version} -eq 3 && "${KUBE_API_VERSIONS}" ]]; then
+    if truthy_test "${HELMFILE_PASS_VERSIONS}" && [[ ${helm_major_version} -eq 3 && "${KUBE_API_VERSIONS}" ]]; then
       INTERNAL_HELM_API_VERSIONS=""
       for v in ${KUBE_API_VERSIONS//,/ }; do
         INTERNAL_HELM_API_VERSIONS="${INTERNAL_HELM_API_VERSIONS} --api-versions=$v"
